@@ -29,6 +29,7 @@ const JWT = jwtClass;
 const jwt = new JWT();
 // module.exports = jwt;
 
-export default jwt;
+module.exports = jwt;
 // export jwt;
+module.exports.default = jwt;
 
