@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "SSO module for frontend",
   "repository": "leroyleejh/rdp-sso",
+  "dependencies" : {
+     "jsonwebtoken": "^8.4.0"
+  },
   "main": "index.js",
   "keywords": [
     "rdp-sso",
