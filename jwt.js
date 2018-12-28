@@ -32,4 +32,3 @@ const jwt = new JWT();
 module.exports = jwt;
 // export jwt;
 module.exports.default = jwt;
-

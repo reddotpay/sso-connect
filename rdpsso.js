@@ -94,7 +94,7 @@ class rdpSSO {
 					&& response.data.rdp_jwt && this.getSSOData(response.data.rdp_jwt)
 					&& response.data.rdp_perm) {
 						this.storeSSO(response.data.rdp_jwt);
-						this.storePermissions(JSON.parse(response.data.rdp_perm));
+						this.storePermissions(response.data.rdp_perm);
 						ls.removeLocal(this.mTokenKey);
 						ls.removeLocal(this.fromKey);
 						ls.removeLocal(this.originKey);
