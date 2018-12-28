@@ -1,0 +1,13 @@
+{
+  "name": "@leroyleejh/rdp-sso",
+  "version": "0.1.0",
+  "description": "SSO module for frontend",
+  "repository": "leroyleejh/rdp-sso",
+  "main": "index.js",
+  "keywords": [
+    "rdp-sso",
+    "npm",
+    "package",
+    "leroyleejh"
+  ]
+}
