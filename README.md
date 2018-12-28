@@ -14,8 +14,10 @@ To be used with Vue 2.x and Vue-Router 3.x
 ```
 #### Environment variables
 ```
-VUE_APP_RDP_SSO_ENDPOINT="https://sso.api.reddotpay.sg"
-VUE_APP_RDP_SSO_PAGE="https://sso.reddotpay.sg"
+VUE_APP_RDP_SSO_ENDPOINT=""
+VUE_APP_RDP_SSO_PAGE=""
+VUE_APP_RDP_SSO_PUB=""
+VUE_APP_RDP_SSO_ISS=""
 ```
 Create a few files below to use
 #### auth.vue
