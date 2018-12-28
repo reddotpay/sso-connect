@@ -47,5 +47,4 @@ class localStorageClass {
 const LS = localStorageClass;
 const ls = new LS();
 
-module.exports = ls;
-module.exports.default = ls;
+export default ls;
