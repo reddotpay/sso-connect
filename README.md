@@ -12,6 +12,11 @@ npm install @leroyleejh/rdp-sso
 ```
 To be used with Vue 2.x and Vue-Router 3.x
 ```
+#### Environment variables
+```
+VUE_APP_RDP_SSO_ENDPOINT="https://sso.api.reddotpay.sg"
+VUE_APP_RDP_SSO_PAGE="https://sso.reddotpay.sg"
+```
 Create a few files below to use
 #### auth.vue
 ```
