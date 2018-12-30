@@ -29,7 +29,6 @@ Create a few files below to use
 
 export default {
 	name: 'auth',
-
 	mounted() {
 		const vue = this;
 		vue.$sso.checkSSO(vue.$route);
@@ -77,6 +76,13 @@ import Vue from 'vue';
 import SSO from '@leroyleejh/rdp-sso';
 
 Object.defineProperty(Vue.prototype, '$sso', { value: SSO });
+
+router.beforeEach((to, from, next) => {
+	if (window.location.pathname.length >= 2) {
+		window.location = `${window.location.origin}/#${window.location.pathname}${window.location.search}`;
+	}
+	next();
+}
 ```
 
 #### To read permissions
