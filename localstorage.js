@@ -41,7 +41,6 @@ class localStorageClass {
 		localStorage.clear();
 		return true;
 	}
-
 }
 
 const LS = localStorageClass;

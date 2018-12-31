@@ -7,6 +7,7 @@ const axios = require('axios');
 
 class rdpSSO {
 	constructor() {
+		this.ssoShortKey = 'rdp-sso-shortkey';
 		this.ssoKey = 'rdp-sso-jwtkey';
 		this.permKey = 'rdp-sso-permissionkey';
 		this.fromKey = 'rdp-sso-from';
@@ -14,11 +15,20 @@ class rdpSSO {
 		this.mTokenKey = 'rdp-sso-mtoken';
 		this.ssoEndPoint = process.env.VUE_APP_RDP_SSO_ENDPOINT;
 		this.ssoPage = process.env.VUE_APP_RDP_SSO_PAGE;
+		this.ssoShortTimeout = (process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT !== undefined) ?  process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT : 1800;
 		this.fromURL = '';
 		this.mToken = '';
 	}
 
+	async init(vueRoute) {
+		if (this.getShortLiveToken()) {
+			return true;
+		}
+		return this.checkSSO(vueRoute);
+	}
+
 	async doLogin(vueRoute, vueRouter) {
+		console.log('calling frontend doLogin');
 		if (Object.keys(vueRoute.query).length) {
 			if (vueRoute.query.mtoken) {
 				ls.storeLocal(this.mTokenKey, vueRoute.query.mtoken);
@@ -31,6 +41,7 @@ class rdpSSO {
 		}
 		// unable to get the JWT token from auth server, redirect to login
 		if (!await this.exchangeJWT()) {
+			console.log('failed to exchange token');
 			this._redirectToLogin();
 		} else {
 			console.log('sso front push');
@@ -44,14 +55,11 @@ class rdpSSO {
 		const mToken = ls.getLocal(this.mTokenKey);
 		// if token exists, verify with the server
 		console.log(rdpJWT);
-		// let rdpJWT = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZABfdXNlcm5hbWUiOiJsbGpoOTlAaG90bWFpbC5jb20iLCJyZHBfZmlyc3RuYW1lIjoiTGVyb3kiLCJyZHBfbGFzdG5hbWUiOiJMZWUiLCJyZHBfdXVpZCI6IjY4YTcyYzIwLTgzMzctNGM3OC04NjdjLWQ1M2Y2YTA0OTMwZCIsInJkcF9hdXRoIjoiYXV0aCIsImlhdCI6MTU0NDUxMzI5MCwiaXNzIjoiUkRQX1NTTyJ9.rUdZktzafiLVJAWXihylkwmjIacQ6WO4_V454eUun_6WFLjpNMpEfNGFdH3poifHQ-fFFWke7GICTeNeISU4WjQ25eLFW3jx3c_LZlI-M_mT5lXDTRvik7IuCcNdvEJ8-qIeIaNkSvPumPBN8CaxwWQNBdj1Nif90JHOIfP0BmQMXE81hxj_dk87NOnyhmcy5nMVNPbFGV6iutu3w_urGl5fEjzk-b0qd2BY4jSmX7OcgFLpVvBv9z0d-Ze6uJrZb8aH7c0sp8jAj13M9TcF7ga5Hge2v8wqa3YgoJRI3I_xtvd-kJaf0jMnnBR_eeuMpj3T1UqNOPdwwR_c1MEzlg';
 		if (rdpJWT && this.getSSOData(rdpJWT)) {
 			// Verify SSO key with sso server
 			console.log('verifying with auth');
 			// if token not valid, remove JWT from local storage and proceed to login
-			if (!await this._verifyToken(rdpJWT)) {
-				ls.removeLocal(this.ssoKey);
-			} else {
+			if (await this._verifyToken(rdpJWT)) {
 				return true;
 			}
 			// if mtoken exists, and is valid, exchange for jwt
@@ -74,6 +82,7 @@ class rdpSSO {
 	exchangeJWT() {
 		console.log(`mtoken: ${this.mToken}`);
 		console.log(`from: ${this.fromURL}`);
+		ls.removeLocal(this.mTokenKey);
 
 		if (this.mToken) {
 			// verify mToken
@@ -95,7 +104,7 @@ class rdpSSO {
 					&& response.data.rdp_perm) {
 						this.storeSSO(response.data.rdp_jwt);
 						this.storePermissions(response.data.rdp_perm);
-						ls.removeLocal(this.mTokenKey);
+						this.storeShortLiveToken();
 						ls.removeLocal(this.fromKey);
 						ls.removeLocal(this.originKey);
 						return true;
@@ -117,6 +126,21 @@ class rdpSSO {
 			return jwt.verifyToken(ls.getLocal(this.ssoKey));
 		}
 		return jwt.verifyToken(value);
+	}
+
+	storeShortLiveToken() {
+		return ls.storeLocal(this.ssoShortKey, jwt.generatePublicToken({ body: 'empty' }, this.ssoShortTimeout));
+	}
+
+	getShortLiveToken() {
+		const shortLive = ls.getLocal(this.ssoShortKey);
+		if (!shortLive) {
+			return false;
+		}
+		if (!jwt.verifyPublicToken(shortLive)) {
+			return false;
+		}
+		return true;
 	}
 
 	storePermissions(value) {

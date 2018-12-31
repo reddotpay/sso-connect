@@ -22,12 +22,34 @@ class jwtClass {
 			return false;
 		}
 	}
+
+	generatePublicToken(payload, expiresIn) {
+		const publicOptions = this.options;
+		publicOptions.algorithm = 'none';
+		if (typeof expiresIn !== 'undefined' && expiresIn) {
+			publicOptions.expiresIn = expiresIn;
+		}
+		const token = this.jwt.sign(payload, '', publicOptions);
+		return token;
+	}
+
+	verifyPublicToken(token) {
+		try {
+			const publicOptions = this.options;
+			publicOptions.algorithm = 'none';
+			if (this.jwt.verify(token, '', publicOptions)) {
+				return true;
+			}
+			return false;
+		} catch (err) {
+			return false;
+		}
+	}
 }
 
 // module.exports = new jwtClass();
 const JWT = jwtClass;
 const jwt = new JWT();
 // module.exports = jwt;
-
 
 export default jwt;
