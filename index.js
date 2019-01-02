@@ -4,7 +4,6 @@ import ls from './localstorage';
 const axios = require('axios');
 
 // to be used by modules
-
 class rdpSSO {
 	constructor() {
 		this.ssoShortKey = 'rdp-sso-shortkey';
@@ -16,81 +15,72 @@ class rdpSSO {
 		this.ssoEndPoint = process.env.VUE_APP_RDP_SSO_ENDPOINT;
 		this.ssoPage = process.env.VUE_APP_RDP_SSO_PAGE;
 		this.ssoShortTimeout = (process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT !== undefined) ?  process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT : 1800;
-		this.fromURL = '';
-		this.mToken = '';
 	}
 
-	async init(vueRoute) {
+	async init(vueRouteTo, vueRouteFrom, vueRouter) {
+		if(vueRouteTo.name === 'auth'
+		|| vueRouteTo.name === 'login'
+		|| vueRouteTo.name === 'show') {
+			return;
+		}
 		if (this.getShortLiveToken()) {
 			return true;
 		}
-		return this.checkSSO(vueRoute);
+		this._storeLocalPathBeforeRedirect(vueRouteFrom);
+		vueRouter.push('auth');
 	}
 
 	async doLogin(vueRoute, vueRouter) {
-		console.log('calling frontend doLogin');
 		if (Object.keys(vueRoute.query).length) {
 			if (vueRoute.query.mtoken) {
 				ls.storeLocal(this.mTokenKey, vueRoute.query.mtoken);
-				this.mToken = vueRoute.query.mtoken;
 			}
 			if (vueRoute.query.from) {
 				ls.storeLocal(this.fromKey, vueRoute.query.from);
-				this.fromURL = vueRoute.query.from;
 			}
 		}
 		// unable to get the JWT token from auth server, redirect to login
 		if (!await this.exchangeJWT()) {
-			console.log('failed to exchange token');
 			this._redirectToLogin();
 		} else {
-			console.log('sso front push');
-			vueRouter.push(this.fromURL);
+			vueRouter.push(ls.getLocal(this.fromKey));
 		}
 	}
 
-	async checkSSO(vueRoute) {
-		console.log('checking sso');
+	async checkSSO(vueRouter) {
 		const rdpJWT = ls.getLocal(this.ssoKey);
 		const mToken = ls.getLocal(this.mTokenKey);
 		// if token exists, verify with the server
-		console.log(rdpJWT);
 		if (rdpJWT && this.getSSOData(rdpJWT)) {
 			// Verify SSO key with sso server
-			console.log('verifying with auth');
-			// if token not valid, remove JWT from local storage and proceed to login
 			if (await this._verifyToken(rdpJWT)) {
+				vueRouter.push(ls.getLocal(this.fromKey));
 				return true;
 			}
+			// if token not valid / expired, remove JWT from local storage and proceed to login
+			ls.removeLocal(this.ssoKey);
 			// if mtoken exists, and is valid, exchange for jwt
 		} else if (mToken && this.getSSOData(mToken) && this.exchangeJWT()) {
+			vueRouter.push(ls.getLocal(this.fromKey));
 			return true;
 		}
 		// if no token exists, or token verification failed,
 		// preform redirect to the login server
 
-		console.log(vueRoute);
-		const from = encodeURIComponent(vueRoute.fullPath);
-		ls.storeLocal(this.fromKey, from);
-		let origin = `${window.location.protocol}//${window.location.host}`;
-		origin = encodeURIComponent(origin);
-		ls.storeLocal(this.originKey, origin);
 		this._redirectToLogin();
 		return false;
 	}
 
 	exchangeJWT() {
-		console.log(`mtoken: ${this.mToken}`);
-		console.log(`from: ${this.fromURL}`);
+		const mToken = ls.getLocal(this.mTokenKey);
 		ls.removeLocal(this.mTokenKey);
-
-		if (this.mToken) {
+		if (mToken) {
 			// verify mToken
-			if (this.getSSOData(this.mToken)) {
+			if (this.getSSOData(mToken)) {
 				return axios.post(
 					`${this.ssoEndPoint}/exchange`,
 					{
-						rdp_mtoken: this.mToken,
+						rdp_mtoken: mToken,
 					},
 					{
 						headers: {
@@ -98,7 +88,6 @@ class rdpSSO {
 						},
 					},
 				).then((response) => {
-					console.log(response);
 					if (response.status === 200
 					&& response.data.rdp_jwt && this.getSSOData(response.data.rdp_jwt)
 					&& response.data.rdp_perm) {
@@ -134,10 +123,11 @@ class rdpSSO {
 
 	getShortLiveToken() {
 		const shortLive = ls.getLocal(this.ssoShortKey);
-		if (!shortLive) {
+		if (!shortLive || !jwt.verifyPublicToken(shortLive)) {
 			return false;
 		}
-		if (!jwt.verifyPublicToken(shortLive)) {
+		const rdpJWT = ls.getLocal(this.ssoKey);
+		if (!rdpJWT || !this.getSSOData(rdpJWT)) {
 			return false;
 		}
 		return true;
@@ -156,12 +146,15 @@ class rdpSSO {
 		ls.removeLocal(this.permKey);
 	}
 
+	_storeLocalPathBeforeRedirect(vueRoute) {
+		ls.storeLocal(this.fromKey, vueRoute.fullPath);
+		ls.storeLocal(this.originKey, `${window.location.protocol}//${window.location.host}`);
+	}
+
 	_redirectToLogin() {
-		const from = ls.getLocal(this.fromKey);
-		const origin = ls.getLocal(this.originKey);
+		const from = encodeURIComponent(ls.getLocal(this.fromKey));
+		const origin = encodeURIComponent(ls.getLocal(this.originKey));
 		const finalURI = `${this.ssoPage}/#/auth?from=${from}&origin=${origin}`;
-		console.log(`sso ${this.ssoPage}`);
-		console.log(`sso redirecting to ${finalURI}`);
 		window.location = finalURI;
 	}
 
@@ -177,7 +170,7 @@ class rdpSSO {
 				},
 			},
 		).then((response) => {
-			console.log(response);
+			this.storeShortLiveToken();
 			return response.status === 200;
 		}).catch(() => false);
 	}

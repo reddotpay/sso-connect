@@ -15,10 +15,8 @@ class jwtClass {
 	verifyToken(token) {
 		try {
 			const verify = this.jwt.verify(token, this.public_key, this.options);
-			console.log(verify);
 			return verify;
 		} catch (err) {
-			console.log(err);
 			return false;
 		}
 	}
@@ -37,10 +35,11 @@ class jwtClass {
 		try {
 			const publicOptions = this.options;
 			publicOptions.algorithm = 'none';
-			if (this.jwt.verify(token, '', publicOptions)) {
-				return true;
+			publicOptions.ignoreExpiration = false;
+			if (!this.jwt.verify(token, '', publicOptions)) {
+				return false;
 			}
-			return false;
+			return true;
 		} catch (err) {
 			return false;
 		}
