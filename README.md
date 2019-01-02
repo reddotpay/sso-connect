@@ -69,10 +69,12 @@ routes: [
 		{
 			path: '/login',
 			component: Login,
+			name: 'login',
 		},
 		{
 			path: '/auth',
 			component: Auth,
+			name: 'auth',
 		},
 ]
 ```

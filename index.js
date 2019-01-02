@@ -43,7 +43,7 @@ class rdpSSO {
 		if (!await this.exchangeJWT()) {
 			this._redirectToLogin();
 		} else {
-			vueRouter.push(ls.getLocal(this.fromKey));
+			this._redirectToFrom(vueRouter);
 		}
 	}
 
@@ -54,14 +54,14 @@ class rdpSSO {
 		if (rdpJWT && this.getSSOData(rdpJWT)) {
 			// Verify SSO key with sso server
 			if (await this._verifyToken(rdpJWT)) {
-				vueRouter.push(ls.getLocal(this.fromKey));
+				this._redirectToFrom(vueRouter);
 				return true;
 			}
 			// if token not valid / expired, remove JWT from local storage and proceed to login
 			ls.removeLocal(this.ssoKey);
 			// if mtoken exists, and is valid, exchange for jwt
 		} else if (mToken && this.getSSOData(mToken) && this.exchangeJWT()) {
-			vueRouter.push(ls.getLocal(this.fromKey));
+			this._redirectToFrom(vueRouter);
 			return true;
 		}
 		// if no token exists, or token verification failed,
@@ -94,8 +94,6 @@ class rdpSSO {
 						this.storeSSO(response.data.rdp_jwt);
 						this.storePermissions(response.data.rdp_perm);
 						this.storeShortLiveToken();
-						ls.removeLocal(this.fromKey);
-						ls.removeLocal(this.originKey);
 						return true;
 					}
 					return false;
@@ -149,6 +147,13 @@ class rdpSSO {
 	_storeLocalPathBeforeRedirect(vueRoute) {
 		ls.storeLocal(this.fromKey, vueRoute.fullPath);
 		ls.storeLocal(this.originKey, `${window.location.protocol}//${window.location.host}`);
+	}
+
+	_redirectToFrom(vueRouter) {
+		const from = ls.getLocal(this.fromKey);
+			console.log(`from: ${from}`);
+			ls.removeLocal(this.fromKey);
+			vueRouter.push(from);
 	}
 
 	_redirectToLogin() {
