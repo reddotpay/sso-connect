@@ -12,12 +12,13 @@ npm install @leroyleejh/rdp-sso
 ```
 To be used with Vue 2.x and Vue-Router 3.x
 ```
-#### Environment variables
+#### Environment variables (build/buildenv.sh)
 ```
-VUE_APP_RDP_SSO_ENDPOINT=""
-VUE_APP_RDP_SSO_PAGE=""
-VUE_APP_RDP_SSO_PUB=""
-VUE_APP_RDP_SSO_ISS=""
+echo "VUE_APP_RDP_SSO_ENDPOINT=\"$RDP_SSO_ENDPOINT\"" >> $PATH
+echo "VUE_APP_RDP_SSO_PAGE=\"$RDP_SSO_PAGE\"" >> $PATH
+echo "VUE_APP_RDP_SSO_PUB=\"$RDP_SSO_PUBLIC_KEY\"" >> $PATH
+echo "VUE_APP_RDP_SSO_ISS=\"$RDP_SSO_ISS\"" >> $PATH
+echo "VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT=\"$RDP_SSO_SHORTLIVE_TIMEOUT\"" >> $PATH
 ```
 Create a few files below to use
 #### auth.vue
@@ -31,7 +32,7 @@ export default {
 	name: 'auth',
 	mounted() {
 		const vue = this;
-		vue.$sso.checkSSO(vue.$route);
+		vue.$sso.checkSSO(vue.$router);
 	}
 }
 </script>
@@ -81,6 +82,7 @@ router.beforeEach((to, from, next) => {
 	if (window.location.pathname.length >= 2) {
 		window.location = `${window.location.origin}/#${window.location.pathname}${window.location.search}`;
 	}
+	SSO.init(to, from, router);
 	next();
 }
 ```
