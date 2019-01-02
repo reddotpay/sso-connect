@@ -14,6 +14,14 @@ To be used with Vue 2.x and Vue-Router 3.x
 ```
 #### Environment variables (build/buildenv.sh)
 ```
+#!/bin/sh
+
+PARENT_DIR=$( pwd -P )
+PATH="${PARENT_DIR}/.env.development.local"
+if [ "$1" == "prod" ]; then
+	PATH="${CI_PROJECT_DIR}/frontend/.env.production"
+fi
+
 echo "VUE_APP_RDP_SSO_ENDPOINT=\"$RDP_SSO_ENDPOINT\"" >> $PATH
 echo "VUE_APP_RDP_SSO_PAGE=\"$RDP_SSO_PAGE\"" >> $PATH
 echo "VUE_APP_RDP_SSO_PUB=\"$RDP_SSO_PUBLIC_KEY\"" >> $PATH
