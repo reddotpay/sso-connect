@@ -94,7 +94,7 @@ router.beforeEach((to, from, next) => {
 	}
 	SSO.init(to, from, router);
 	next();
-}
+});
 ```
 
 #### To read permissions
