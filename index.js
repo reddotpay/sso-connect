@@ -14,7 +14,7 @@ class rdpSSO {
 		this.mTokenKey = 'rdp-sso-mtoken';
 		this.ssoEndPoint = process.env.VUE_APP_RDP_SSO_ENDPOINT;
 		this.ssoPage = process.env.VUE_APP_RDP_SSO_PAGE;
-		this.ssoShortTimeout = (process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT !== undefined) ?  process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT : '30m';
+		this.ssoShortTimeout = (process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT !== undefined) ?  process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT : '15m';
 	}
 
 	async init(vueRouteTo, vueRouteFrom, vueRouter) {
@@ -44,6 +44,26 @@ class rdpSSO {
 			this._redirectToLogin();
 		} else {
 			this._redirectToFrom(vueRouter);
+		}
+	}
+
+	async doLogout() {
+		const rdpJWT = ls.getLocal(this.ssoKey);
+		if (this.getSSOData(rdpJWT)) {
+			await axios.post(
+				`${this.ssoEndPoint}/logout`,
+				{
+					rdp_jwt: rdpJWT,
+				},
+				{
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+				},
+			);
+			ls.removeLocal(this.ssoKey);
+			ls.removeLocal(this.permKey);
+			ls.removeLocal(this.ssoShortKey)
 		}
 	}
 
@@ -137,11 +157,6 @@ class rdpSSO {
 
 	getPermissions() {
 		return ls.getLocal(this.permKey);
-	}
-
-	logout() {
-		ls.removeLocal(this.ssoKey);
-		ls.removeLocal(this.permKey);
 	}
 
 	_storeLocalPathBeforeRedirect(vueRoute) {

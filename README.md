@@ -89,21 +89,47 @@ import SSO from '@leroyleejh/rdp-sso';
 Object.defineProperty(Vue.prototype, '$sso', { value: SSO });
 
 router.beforeEach((to, from, next) => {
+	// this line of code is to handle the hashed url properly, since we are not using history mode
 	if (window.location.pathname.length >= 2) {
 		window.location = `${window.location.origin}/#${window.location.pathname}${window.location.search}`;
 	}
+
+	// the entry point for SSO
 	SSO.init(to, from, router);
 	next();
+}
+```
+
+#### To get user's data
+```
+export default {
+	mounted() {
+		const vue = this;
+		const userDataObj = vue.$sso.getSSOData();
+	}
+}
+```
+##### sample serDataObj
+```
+{
+	"rdp_username": "test@test.com",	// email address of the user when signing up
+	"rdp_firstname": "test",				// first name of the user when
+	"rdp_lastname": "test",					// last name of the user
+	"rdp_company": "test",					// parsed company name when signing up (used to get MerchantId from MAM service)
+	"rdp_uuid": "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // UUID of this particular user (used for permissions etc)
+	"rdp_auth": "auth",	// sso variables
+	"iat": xxxxxxxx,	// sso variables
+	"iss": "xxxxx"	// sso variables
 }
 ```
 
 #### To read permissions
 ```
 export default {
-  mounted() {
-    const vue = this;
-    const permissionsObj = vue.$sso.getPermissions();
-  }
+	mounted() {
+		const vue = this;
+		const permissionsObj = vue.$sso.getPermissions();
+	}
 }
 ```
 
