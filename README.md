@@ -30,6 +30,7 @@ echo "VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT=\"$RDP_SSO_SHORTLIVE_TIMEOUT\"" >> $PATH
 ```
 Create a few files below to use
 #### auth.vue
+Page to perform SSO token verification/exchange
 ```
 <template>
 </template>
@@ -46,6 +47,7 @@ export default {
 </script>
 ```
 #### login.vue
+Page for callback URL from SSO after logging in
 ```
 <template>
 </template>
@@ -66,12 +68,12 @@ export default {
 import Login from './views/login.vue'; // path to login.vue
 import Auth from './views/auth.vue'; // path to auth.vue
 routes: [
-		{
+		{	// callback URL from SSO after logging in
 			path: '/login',
 			component: Login,
 			name: 'login',
 		},
-		{
+		{	// URL to perform SSO token verification/exchange
 			path: '/auth',
 			component: Auth,
 			name: 'auth',
@@ -89,21 +91,66 @@ import SSO from '@leroyleejh/rdp-sso';
 Object.defineProperty(Vue.prototype, '$sso', { value: SSO });
 
 router.beforeEach((to, from, next) => {
+	// this line of code is to handle the hashed url properly, since we are not using history mode
 	if (window.location.pathname.length >= 2) {
 		window.location = `${window.location.origin}/#${window.location.pathname}${window.location.search}`;
 	}
+
+	// the entry point for SSO
 	SSO.init(to, from, router);
 	next();
+});
+```
+
+#### To logout
+```
+const vue = this;
+vue.$sso.doLogout();
+//peform your own redirection after logout is done
+```
+
+#### To get user's data
+```
+export default {
+	mounted() {
+		const vue = this;
+		const userDataObj = vue.$sso.getSSOData();
+	}
+}
+```
+##### sample userDataObj
+```
+{
+	"rdp_username": "test@test.com",	// email address of the user when signing up
+	"rdp_firstname": "test",				// first name of the user when
+	"rdp_lastname": "test",					// last name of the user
+	"rdp_company": "test",					// companyID used to log in
+	"rdp_companyName": "test",				// company name entered when user signs up
+	"rdp_groupID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // company UUID (used for MAM)
+	"rdp_uuid": "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // UUID of user (used for permissions etc)
+	"rdp_auth": "auth",	// sso variables
+	"iat": xxxxxxxx,	// sso variables
+	"iss": "xxxxx"	// sso variables
+}
+```
+
+#### To get userToken
+```
+export default {
+	mounted() {
+		const vue = this;
+		const userDataObj = vue.$sso.getSSOToken();
+	}
 }
 ```
 
 #### To read permissions
 ```
 export default {
-  mounted() {
-    const vue = this;
-    const permissionsObj = vue.$sso.getPermissions();
-  }
+	mounted() {
+		const vue = this;
+		const permissionsObj = vue.$sso.getPermissions();
+	}
 }
 ```
 
