@@ -99,7 +99,7 @@ router.beforeEach((to, from, next) => {
 	// the entry point for SSO
 	SSO.init(to, from, router);
 	next();
-}
+});
 ```
 
 #### To logout
