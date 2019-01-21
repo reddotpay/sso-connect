@@ -137,7 +137,7 @@ To retrieve user data
 ```
 const vue = this;
 
-const userID = vue.$sso.getUserID(); // user unique identifier within the system
+const userID = vue.ack$sso.getUserID(); // user unique identifier within the system
 const userName = vue.$sso.getUserName(); // user email
 const userFirstName = vue.$sso.getUserFirstName(); // user first name
 const userLastName = vue.$sso.getUserLastName(); // user last name
