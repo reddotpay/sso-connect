@@ -139,11 +139,85 @@ class rdpSSO {
 		return ls.storeLocal(this.ssoKey, value);
 	}
 
+	/**
+	 *
+	 * @param string value; optional parameter, of type SSO token
+	 *
+	 * @return object
+	 * {
+			"rdp_username": "test@test.com",	// email address of the user when signing up
+			"rdp_firstname": "test",				// first name of the user when
+			"rdp_lastname": "test",					// last name of the user
+			"rdp_company": "test",					// companyID used to log in
+			"rdp_companyName": "test",				// company name entered when user signs up
+			"rdp_groupID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // company UUID (used for MAM)
+			"rdp_uuid": "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // UUID of user (used for permissions etc)
+			"rdp_auth": "auth",	// sso variables
+			"iat": xxxxxxxx,	// sso variables
+			"iss": "xxxxx"	// sso variables
+		}
+	 */
 	getSSOData(value) {
 		if (value === undefined) {
 			return jwt.verifyToken(ls.getLocal(this.ssoKey));
 		}
 		return jwt.verifyToken(value);
+	}
+
+	getUserID() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_uuid;
+		}
+		return false;
+	}
+
+	getUserName() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_username;
+		}
+		return false;
+	}
+
+	getUserFirstName() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_firstname;
+		}
+		return false;
+	}
+
+	getUserLastName() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_lastname;
+		}
+		return false;
+	}
+
+	getCompanyID() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_company;
+		}
+		return false;
+	}
+
+	getCompanyName() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_companyName;
+		}
+		return false;
+	}
+
+	getCompanyGroupID() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_groupID;
+		}
+		return false;
 	}
 
 	getSSOToken() {

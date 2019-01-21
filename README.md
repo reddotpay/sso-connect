@@ -133,6 +133,18 @@ export default {
 	"iss": "xxxxx"	// sso variables
 }
 ```
+To retrieve user data
+```
+const vue = this;
+
+const userID = vue.$sso.getUserID(); // user unique identifier within the system
+const userName = vue.$sso.getUserName(); // user email
+const userFirstName = vue.$sso.getUserFirstName(); // user first name
+const userLastName = vue.$sso.getUserLastName(); // user last name
+const companyID = vue.$sso.getCompanyID(); // company ID used to log in to SSO
+const companyName = vue.$sso.getCompanyName(); // company name entered by user when signing up
+const companyGroupID = vue.$sso.getCompanyGroupID(); // company group ID tied to MAM and other services
+```
 
 #### To get userToken
 ```
