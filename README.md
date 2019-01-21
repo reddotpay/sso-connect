@@ -97,7 +97,8 @@ router.beforeEach((to, from, next) => {
 	}
 
 	// the entry point for SSO
-	SSO.init(to, from, router);
+	// SSO will redirect to optionalDefaultPath after login (/some-path)
+	SSO.init(to, from, router, optionalDefaultPath);
 	next();
 });
 ```
@@ -121,16 +122,16 @@ export default {
 ##### sample userDataObj
 ```
 {
-	"rdp_username": "test@test.com",	// email address of the user when signing up
-	"rdp_firstname": "test",				// first name of the user when
-	"rdp_lastname": "test",					// last name of the user
-	"rdp_company": "test",					// companyID used to log in
-	"rdp_companyName": "test",				// company name entered when user signs up
+	"rdp_username": "test@test.com", // email address of the user when signing up
+	"rdp_firstname": "test", // first name of the user when
+	"rdp_lastname": "test", // last name of the user
+	"rdp_company": "test", // companyID used to log in
+	"rdp_companyName": "test", // company name entered when user signs up
 	"rdp_groupID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // company UUID (used for MAM)
 	"rdp_uuid": "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // UUID of user (used for permissions etc)
-	"rdp_auth": "auth",	// sso variables
-	"iat": xxxxxxxx,	// sso variables
-	"iss": "xxxxx"	// sso variables
+	"rdp_auth": "auth", // sso variables
+	"iat": xxxxxxxx, // sso variables
+	"iss": "xxxxx" // sso variables
 }
 ```
 To retrieve user data
