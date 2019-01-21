@@ -12,23 +12,31 @@ class rdpSSO {
 		this.fromKey = 'rdp-sso-from';
 		this.originKey = 'rdp-sso-origin';
 		this.mTokenKey = 'rdp-sso-mtoken';
+		this.defaultFromKey = 'rdp-sso-default-from';
 		this.ssoEndPoint = process.env.VUE_APP_RDP_SSO_ENDPOINT;
 		this.ssoPage = process.env.VUE_APP_RDP_SSO_PAGE;
-		this.ssoShortTimeout = (process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT) ?  process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT : '15m';
+		this.ssoShortTimeout = (process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT) ? process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT : '15m';
 	}
 
-	async init(vueRouteTo, vueRouteFrom, vueRouter) {
-		if(vueRouteTo.name === 'auth'
+	async init(vueRouteTo, vueRouteFrom, vueRouter, defaultRoutePath) {
+		if (vueRouteTo.name === 'auth'
 		|| vueRouteTo.name === 'login'
 		|| vueRouteTo.name === 'show'
-		|| vueRouteTo.name === 'logout') {
+		|| vueRouteTo.name === 'logout'
+		|| vueRouteTo.name === 'error'
+		|| vueRouteTo.name === 'notfound') {
 			return;
 		}
-		if (this.getShortLiveToken()) {
-			return true;
+		if (this.getSSOData()) {
+			if (this.getShortLiveToken() || this._verifyToken(this.getSSOToken())) {
+				return;
+			}
 		}
-		this._storeLocalPathBeforeRedirect(vueRouteFrom);
-		vueRouter.push('auth');
+		if (typeof defaultRoutePath !== 'undefined') {
+			ls.storeLocal(this.defaultFromKey, defaultRoutePath);
+		}
+		this._storeLocalPathBeforeRedirect(vueRouteTo);
+		vueRouter.push({ path: '/auth' });
 	}
 
 	async doLogin(vueRoute, vueRouter) {
@@ -52,7 +60,7 @@ class rdpSSO {
 		const rdpJWT = ls.getLocal(this.ssoKey);
 		ls.removeLocal(this.ssoKey);
 		ls.removeLocal(this.permKey);
-		ls.removeLocal(this.ssoShortKey)
+		ls.removeLocal(this.ssoShortKey);
 		if (this.getSSOData(rdpJWT)) {
 			return axios.post(
 				`${this.ssoEndPoint}/logout`,
@@ -64,11 +72,9 @@ class rdpSSO {
 						'Content-Type': 'application/x-www-form-urlencoded',
 					},
 				},
-			).then(() => {
-				return true;
-			}).catch(() => {
-				return false;
-			});
+			)
+				.then(() => true)
+				.catch(() => false);
 		}
 		return true;
 	}
@@ -126,9 +132,7 @@ class rdpSSO {
 						return true;
 					}
 					return false;
-				}).catch(() => {
-					return false;
-				});
+				}).catch(() => false);
 			}
 		}
 		// Token expired, redirect back to login page
@@ -139,15 +143,96 @@ class rdpSSO {
 		return ls.storeLocal(this.ssoKey, value);
 	}
 
-	getSSOData(value) {
-		if (value === undefined) {
-			return jwt.verifyToken(ls.getLocal(this.ssoKey));
+	/**
+	 *
+	 * @param string value; optional parameter, of type SSO token
+	 *
+	 * @return object
+	 * {
+			"rdp_username": "test@test.com", // email address of the user when signing up
+			"rdp_firstname": "test", // first name of the user when
+			"rdp_lastname": "test", // last name of the user
+			"rdp_company": "test", // companyID used to log in
+			"rdp_companyName": "test", // company name entered when user signs up
+			"rdp_groupID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // company UUID (used for MAM)
+			"rdp_uuid": "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // UUID of user (used for permissions etc)
+			"rdp_auth": "auth", // sso variables
+			"iat": xxxxxxxx, // sso variables
+			"iss": "xxxxx" // sso variables
 		}
-		return jwt.verifyToken(value);
+	 */
+	getSSOData(value) {
+		if (typeof value !== 'undefined' && value) {
+			return jwt.verifyToken(value);
+		}
+		if (ls.getLocal(this.ssoKey)) {
+			const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+			if (data) {
+				return data;
+			}
+			ls.removeLocal(this.ssoKey);
+		}
+		return false;
+	}
+
+	getUserID() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_uuid;
+		}
+		return false;
+	}
+
+	getUserName() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_username;
+		}
+		return false;
+	}
+
+	getUserFirstName() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_firstname;
+		}
+		return false;
+	}
+
+	getUserLastName() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_lastname;
+		}
+		return false;
+	}
+
+	getCompanyID() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_company;
+		}
+		return false;
+	}
+
+	getCompanyName() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_companyName;
+		}
+		return false;
+	}
+
+	getCompanyGroupID() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (data) {
+			return data.rdp_groupID;
+		}
+		return false;
 	}
 
 	getSSOToken() {
-		if(jwt.verifyToken(ls.getLocal(this.ssoKey))) {
+		if (jwt.verifyToken(ls.getLocal(this.ssoKey))) {
 			return ls.getLocal(this.ssoKey);
 		}
 		return false;
@@ -161,12 +246,6 @@ class rdpSSO {
 		const shortLive = ls.getLocal(this.ssoShortKey);
 		if (!shortLive || !jwt.verifyPublicToken(shortLive)) {
 			ls.removeLocal(this.ssoShortKey);
-			ls.removeLocal(this.ssoKey);
-			return false;
-		}
-		const rdpJWT = ls.getLocal(this.ssoKey);
-		if (!rdpJWT || !this.getSSOData(rdpJWT)) {
-			ls.removeLocal(this.ssoKey);
 			return false;
 		}
 		return true;
@@ -186,10 +265,13 @@ class rdpSSO {
 	}
 
 	_redirectToFrom(vueRouter) {
-		const from = ls.getLocal(this.fromKey);
-		console.log(`from: ${from}`);
+		let from = ls.getLocal(this.fromKey);
 		ls.removeLocal(this.fromKey);
-		vueRouter.push(from);
+		if (ls.getLocal(this.defaultFromKey)) {
+			from = ls.getLocal(this.defaultFromKey);
+			ls.removeLocal(this.defaultFromKey);
+		}
+		vueRouter.push({ path: from });
 	}
 
 	_redirectToLogin() {
