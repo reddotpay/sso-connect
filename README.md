@@ -1,11 +1,11 @@
 # rdp-sso
-[![npm (scoped)](https://img.shields.io/npm/v/@reddotpay/rdp-sso.svg)](https://www.npmjs.com/package/@reddotpay/rdp-sso)
+[![npm (scoped)](https://img.shields.io/npm/v/@leroyleejh/rdp-sso.svg)](https://www.npmjs.com/package/@leroyleejh/rdp-sso)
 
 SSO package for RDP products
 
 ## Install
 ```
-npm install @reddotpay/rdp-sso
+npm install @leroyleejh/rdp-sso
 ```
 
 ## Requirements
@@ -28,6 +28,10 @@ echo "VUE_APP_RDP_SSO_PUB=\"$RDP_SSO_PUBLIC_KEY\"" >> $PATH
 echo "VUE_APP_RDP_SSO_ISS=\"$RDP_SSO_ISS\"" >> $PATH
 echo "VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT=\"$RDP_SSO_SHORTLIVE_TIMEOUT\"" >> $PATH
 ```
+
+#### CSP
+Allow `$RDP_SSO_CSP` in connect-src CSP
+
 Create a few files below to use
 #### auth.vue
 Page to perform SSO token verification/exchange

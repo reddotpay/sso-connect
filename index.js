@@ -109,34 +109,32 @@ class rdpSSO {
 	exchangeJWT() {
 		const mToken = ls.getLocal(this.mTokenKey);
 		ls.removeLocal(this.mTokenKey);
-		if (mToken) {
-			// verify mToken
-			if (this.getSSOData(mToken)) {
-				return axios.post(
-					`${this.ssoEndPoint}/exchange`,
-					{
-						rdp_mtoken: mToken,
-					},
-					{
-						headers: {
-							'Content-Type': 'application/x-www-form-urlencoded',
-						},
-					},
-				).then((response) => {
-					if (response.status === 200
-					&& response.data.rdp_jwt && this.getSSOData(response.data.rdp_jwt)
-					&& response.data.rdp_perm) {
-						this.storeSSO(response.data.rdp_jwt);
-						this.storePermissions(response.data.rdp_perm);
-						this.storeShortLiveToken();
-						return true;
-					}
-					return false;
-				}).catch(() => false);
-			}
+		if(!mToken || !this.getSSOData(mToken)) {
+			// Token expired, redirect back to login page
+			return false;
 		}
-		// Token expired, redirect back to login page
-		return false;
+		// verify mToken
+		return axios.post(
+			`${this.ssoEndPoint}/exchange`,
+			{
+				rdp_mtoken: mToken,
+			},
+			{
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+			},
+		).then((response) => {
+			if (response.status === 200
+			&& response.data.rdp_jwt && this.getSSOData(response.data.rdp_jwt)
+			&& response.data.rdp_perm) {
+				this.storeSSO(response.data.rdp_jwt);
+				this.storePermissions(response.data.rdp_perm);
+				this.storeShortLiveToken();
+				return true;
+			}
+			return false;
+		}).catch(() => false);
 	}
 
 	storeSSO(value) {
@@ -167,75 +165,77 @@ class rdpSSO {
 		}
 		if (ls.getLocal(this.ssoKey)) {
 			const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
-			if (data) {
-				return data;
+			if (!data) {
+				ls.removeLocal(this.ssoKey);
+				return false;
 			}
-			ls.removeLocal(this.ssoKey);
+			return data;
 		}
 		return false;
 	}
 
 	getUserID() {
 		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
-		if (data) {
-			return data.rdp_uuid;
+		if (!data) {
+			return false;
 		}
-		return false;
+		return data.rdp_uuid;
 	}
 
 	getUserName() {
 		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
-		if (data) {
-			return data.rdp_username;
+		if (!data) {
+			return false;
 		}
-		return false;
+		return data.rdp_username;
 	}
 
 	getUserFirstName() {
 		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
-		if (data) {
-			return data.rdp_firstname;
+		if (!data) {
+			return false;
 		}
-		return false;
+		return data.rdp_firstname;
 	}
 
 	getUserLastName() {
 		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
-		if (data) {
-			return data.rdp_lastname;
+		if (!data) {
+			return false;
 		}
-		return false;
+		return data.rdp_lastname;
 	}
 
 	getCompanyID() {
 		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
-		if (data) {
-			return data.rdp_company;
+		if (!data) {
+			return false;
 		}
-		return false;
+		return data.rdp_company;
 	}
 
 	getCompanyName() {
 		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
-		if (data) {
-			return data.rdp_companyName;
+		if (!data) {
+			return false;
 		}
-		return false;
+		return data.rdp_companyName;
 	}
 
 	getCompanyGroupID() {
 		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
-		if (data) {
-			return data.rdp_groupID;
+		if (!data) {
+			return false;
 		}
-		return false;
+		return data.rdp_groupID;
 	}
 
 	getSSOToken() {
-		if (jwt.verifyToken(ls.getLocal(this.ssoKey))) {
-			return ls.getLocal(this.ssoKey);
+		if (!jwt.verifyToken(ls.getLocal(this.ssoKey))) {
+			ls.removeLocal(this.ssoKey);
+			return false;
 		}
-		return false;
+		return ls.getLocal(this.ssoKey);
 	}
 
 	storeShortLiveToken() {
