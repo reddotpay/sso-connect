@@ -28,6 +28,10 @@ echo "VUE_APP_RDP_SSO_PUB=\"$RDP_SSO_PUBLIC_KEY\"" >> $PATH
 echo "VUE_APP_RDP_SSO_ISS=\"$RDP_SSO_ISS\"" >> $PATH
 echo "VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT=\"$RDP_SSO_SHORTLIVE_TIMEOUT\"" >> $PATH
 ```
+
+#### CSP
+Allow `$RDP_SSO_CSP` in connect-src CSP
+
 Create a few files below to use
 #### auth.vue
 Page to perform SSO token verification/exchange
