@@ -1,11 +1,11 @@
 # rdp-sso
-[![npm (scoped)](https://img.shields.io/npm/v/@leroyleejh/rdp-sso.svg)](https://www.npmjs.com/package/@leroyleejh/rdp-sso)
+[![npm (scoped)](https://img.shields.io/npm/v/@reddotpay/rdp-sso.svg)](https://www.npmjs.com/package/@reddotpay/rdp-sso)
 
 SSO package for RDP products
 
 ## Install
 ```
-npm install @leroyleejh/rdp-sso
+npm install @reddotpay/rdp-sso
 ```
 
 ## Requirements
@@ -72,16 +72,16 @@ export default {
 import Login from './views/login.vue'; // path to login.vue
 import Auth from './views/auth.vue'; // path to auth.vue
 routes: [
-		{	// callback URL from SSO after logging in
-			path: '/login',
-			component: Login,
-			name: 'login',
-		},
-		{	// URL to perform SSO token verification/exchange
-			path: '/auth',
-			component: Auth,
-			name: 'auth',
-		},
+	{	// callback URL from SSO after logging in
+		path: '/login',
+		component: Login,
+		name: 'login',
+	},
+	{	// URL to perform SSO token verification/exchange
+		path: '/auth',
+		component: Auth,
+		name: 'auth',
+	},
 ]
 ```
 
