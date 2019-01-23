@@ -1,11 +1,11 @@
 # rdp-sso
-[![npm (scoped)](https://img.shields.io/npm/v/@leroyleejh/rdp-sso.svg)](https://www.npmjs.com/package/@leroyleejh/rdp-sso)
+[![npm (scoped)](https://img.shields.io/npm/v/@reddotpay/rdp-sso.svg)](https://www.npmjs.com/package/@reddotpay/rdp-sso)
 
 SSO package for RDP products
 
 ## Install
 ```
-npm install @leroyleejh/rdp-sso
+npm install @reddotpay/rdp-sso
 ```
 
 ## Requirements
