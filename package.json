@@ -1,6 +1,6 @@
 {
   "name": "@leroyleejh/rdp-sso",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "SSO module for frontend",
   "repository": "leroyleejh/rdp-sso",
   "dependencies": {

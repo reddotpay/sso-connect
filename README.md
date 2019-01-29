@@ -132,6 +132,7 @@ export default {
 	"rdp_company": "test", // companyID used to log in
 	"rdp_companyName": "test", // company name entered when user signs up
 	"rdp_groupID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // company UUID (used for MAM)
+	"rdp_role": "merchant-admin"|"merchant-staff" // role of user
 	"rdp_uuid": "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // UUID of user (used for permissions etc)
 	"rdp_auth": "auth", // sso variables
 	"iat": xxxxxxxx, // sso variables
@@ -149,6 +150,7 @@ const userLastName = vue.$sso.getUserLastName(); // user last name
 const companyID = vue.$sso.getCompanyID(); // company ID used to log in to SSO
 const companyName = vue.$sso.getCompanyName(); // company name entered by user when signing up
 const companyGroupID = vue.$sso.getCompanyGroupID(); // company group ID tied to MAM and other services
+const userRole = vue.$sso.getUserRole(); // role of user
 ```
 
 #### To get userToken
