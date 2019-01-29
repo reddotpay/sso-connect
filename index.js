@@ -1,5 +1,7 @@
 import jwt from './jwt';
 import ls from './localstorage';
+import encryptData from './encrypt';
+
 
 const axios = require('axios');
 
@@ -62,10 +64,13 @@ class rdpSSO {
 		ls.removeLocal(this.permKey);
 		ls.removeLocal(this.ssoShortKey);
 		if (this.getSSOData(rdpJWT)) {
+			const payload = {
+				rdp_jwt: rdpJWT,
+			};
 			return axios.post(
 				`${this.ssoEndPoint}/logout`,
 				{
-					rdp_jwt: rdpJWT,
+					payload: encryptData(payload),
 				},
 				{
 					headers: {
@@ -114,10 +119,13 @@ class rdpSSO {
 			return false;
 		}
 		// verify mToken
+		const payload = {
+			rdp_mtoken: mToken,
+		}
 		return axios.post(
 			`${this.ssoEndPoint}/exchange`,
 			{
-				rdp_mtoken: mToken,
+				payload: encryptData(payload),
 			},
 			{
 				headers: {
@@ -230,6 +238,14 @@ class rdpSSO {
 		return data.rdp_groupID;
 	}
 
+	getUserRole() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (!data) {
+			return false;
+		}
+		return data.rdp_role;
+	}
+
 	getSSOToken() {
 		if (!jwt.verifyToken(ls.getLocal(this.ssoKey))) {
 			ls.removeLocal(this.ssoKey);
@@ -282,10 +298,13 @@ class rdpSSO {
 	}
 
 	_verifyToken(rdpJWT) {
+		const payload = {
+			rdp_jwt: rdpJWT,
+		};
 		return axios.post(
 			`${this.ssoEndPoint}/verify`,
 			{
-				rdp_jwt: rdpJWT,
+				payload: encryptData(payload),
 			},
 			{
 				headers: {
