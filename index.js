@@ -4,6 +4,8 @@ import encryptData from './encrypt';
 
 
 const axios = require('axios');
+axios.defaults.headers.post['X-Rdp-Csrf'] = 'sso';
+axios.defaults.headers.post['X-Requested-With'] = 'XmlHttpRequest';
 
 // to be used by modules
 class rdpSSO {
@@ -18,6 +20,8 @@ class rdpSSO {
 		this.ssoEndPoint = process.env.VUE_APP_RDP_SSO_ENDPOINT;
 		this.ssoPage = process.env.VUE_APP_RDP_SSO_PAGE;
 		this.ssoShortTimeout = (process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT) ? process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT : '15m';
+
+		this.ssoIntervalFn;
 	}
 
 	async init(vueRouteTo, vueRouteFrom, vueRouter, defaultRoutePath) {
@@ -29,16 +33,13 @@ class rdpSSO {
 		|| vueRouteTo.name === 'notfound') {
 			return;
 		}
-		if (this.getSSOData()) {
-			if (this.getShortLiveToken() || this._verifyToken(this.getSSOToken())) {
-				return;
-			}
-		}
 		if (typeof defaultRoutePath !== 'undefined') {
 			ls.storeLocal(this.defaultFromKey, defaultRoutePath);
 		}
 		this._storeLocalPathBeforeRedirect(vueRouteTo);
-		vueRouter.push({ path: '/auth' });
+		if (this._performJWTCheck(true, vueRouter)) {
+			return;
+		}
 	}
 
 	async doLogin(vueRoute, vueRouter) {
@@ -138,7 +139,7 @@ class rdpSSO {
 			&& response.data.rdp_perm) {
 				this.storeSSO(response.data.rdp_jwt);
 				this.storePermissions(response.data.rdp_perm);
-				this.storeShortLiveToken();
+				//this.storeShortLiveToken();
 				return true;
 			}
 			return false;
@@ -254,18 +255,20 @@ class rdpSSO {
 		return ls.getLocal(this.ssoKey);
 	}
 
-	storeShortLiveToken() {
-		return ls.storeLocal(this.ssoShortKey, jwt.generatePublicToken({ body: 'empty' }, this.ssoShortTimeout));
-	}
+	// storeShortLiveToken() {
+	// 	return true;
+	// 	return ls.storeLocal(this.ssoShortKey, jwt.generatePublicToken({ body: 'empty' }, this.ssoShortTimeout));
+	// }
 
-	getShortLiveToken() {
-		const shortLive = ls.getLocal(this.ssoShortKey);
-		if (!shortLive || !jwt.verifyPublicToken(shortLive)) {
-			ls.removeLocal(this.ssoShortKey);
-			return false;
-		}
-		return true;
-	}
+	// getShortLiveToken() {
+	// 	return true;
+	// 	const shortLive = ls.getLocal(this.ssoShortKey);
+	// 	if (!shortLive || !jwt.verifyPublicToken(shortLive)) {
+	// 		ls.removeLocal(this.ssoShortKey);
+	// 		return false;
+	// 	}
+	// 	return true;
+	// }
 
 	storePermissions(value) {
 		return ls.storeLocal(this.permKey, value);
@@ -312,9 +315,33 @@ class rdpSSO {
 				},
 			},
 		).then((response) => {
-			this.storeShortLiveToken();
+			//this.storeShortLiveToken();
 			return response.status === 200;
-		}).catch(() => false);
+		}).catch(() => {
+			return false;
+		} );
+	}
+
+	async _performJWTCheck(skipTimeout, vueRouter) {
+		skipTimeout = false;
+		if (!skipTimeout) {
+			if (this.ssoIntervalFn) {
+				clearTimeout(this.ssoIntervalFn);
+			}
+		}
+
+		if (this.getSSOData() && await this._verifyToken(this.getSSOToken())) {
+			if (!skipTimeout) {
+				const obj = this;
+				this.ssoIntervalFn = setTimeout(function(){
+					obj._performJWTCheck(false, vueRouter);
+				}
+					, 60000);
+			}
+		}
+		else {
+			vueRouter.push({ path: '/auth' });
+		}
 	}
 }
 
