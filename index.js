@@ -4,8 +4,6 @@ import encryptData from './encrypt';
 
 
 const axios = require('axios');
-axios.defaults.headers.post['X-Rdp-Csrf'] = 'sso';
-axios.defaults.headers.post['X-Requested-With'] = 'XmlHttpRequest';
 
 // to be used by modules
 class rdpSSO {
@@ -76,6 +74,8 @@ class rdpSSO {
 				{
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
+						'X-Rdp-Csrf': 'sso',
+						'X-Requested-With': 'XmlHttpRequest',
 					},
 				},
 			)
@@ -131,6 +131,8 @@ class rdpSSO {
 			{
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
+					'X-Rdp-Csrf': 'sso',
+					'X-Requested-With': 'XmlHttpRequest',
 				},
 			},
 		).then((response) => {
@@ -312,6 +314,8 @@ class rdpSSO {
 			{
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
+					'X-Rdp-Csrf': 'sso',
+					'X-Requested-With': 'XmlHttpRequest',
 				},
 			},
 		).then((response) => {
