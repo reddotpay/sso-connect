@@ -297,7 +297,7 @@ class rdpSSO {
 			vueRouter.push({ path: from });
 		} else {
 			const origin = ls.getLocal(this.originKey);
-			window.location = `${origin}/#/${from}`;
+			window.location = `${origin}/#${from}`;
 		}
 	}
 
