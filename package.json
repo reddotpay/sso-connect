@@ -1,6 +1,6 @@
 {
   "name": "@reddotpay/rdp-sso",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "description": "SSO module for frontend",
   "repository": "reddotpay/rdp-sso",
   "dependencies": {
