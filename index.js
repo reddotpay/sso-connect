@@ -292,13 +292,7 @@ class rdpSSO {
 			from = ls.getLocal(this.defaultFromKey);
 			ls.removeLocal(this.defaultFromKey);
 		}
-		// uses window.location if vueRouter doesnt exists
-		if (typeof vueRouter !== 'undefined' && vueRouter) {
-			vueRouter.push({ path: from });
-		} else {
-			const origin = ls.getLocal(this.originKey);
-			window.location = `${origin}/#/${from}`;
-		}
+		vueRouter.push({ path: from });
 	}
 
 	_redirectToLogin() {

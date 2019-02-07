@@ -62,7 +62,6 @@ export default {
 	name: 'login',
 	mounted() {
 		const vue = this;
-		// omit vue.$router to use window.location for redirection
 		vue.$sso.doLogin(vue.$route, vue.$router);
 	}
 }
