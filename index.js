@@ -57,32 +57,33 @@ class rdpSSO {
 		}
 	}
 
-	async doLogout() {
+	doLogout(callbackfn) {
 		const rdpJWT = ls.getLocal(this.ssoKey);
 		ls.removeLocal(this.ssoKey);
 		ls.removeLocal(this.permKey);
 		ls.removeLocal(this.ssoShortKey);
-		if (this.getSSOData(rdpJWT)) {
-			const payload = {
-				rdp_jwt: rdpJWT,
-			};
-			await axios.post(
-				`${this.ssoEndPoint}/logout`,
-				{
-					payload: encryptData(payload),
+		const payload = {
+			rdp_jwt: rdpJWT,
+		};
+		return axios.post(
+			`${this.ssoEndPoint}/logout`,
+			{
+				payload: encryptData(payload),
+			},
+			{
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'X-Rdp-Csrf': 'sso',
+					'X-Requested-With': 'XmlHttpRequest',
 				},
-				{
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-						'X-Rdp-Csrf': 'sso',
-						'X-Requested-With': 'XmlHttpRequest',
-					},
-				},
-			)
-				.then(() => true)
-				.catch(() => false);
-		}
-		return true;
+			},
+		)
+		.then(() => {
+			callbackfn();
+		})
+		.catch(() => {
+			callbackfn();
+		});
 	}
 
 	async checkSSO(vueRouter) {
