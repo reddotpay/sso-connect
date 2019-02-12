@@ -111,7 +111,7 @@ router.beforeEach((to, from, next) => {
 #### To logout
 ```
 const vue = this;
-// supply a callback to the function to logout function to redirect to
+// supply a callback function to doLogout for redirect
 vue.$sso.doLogout(function() {
 	// vue.$router.push({ name: 'home' });
 	// vue.$router.push({ path: '/' });
