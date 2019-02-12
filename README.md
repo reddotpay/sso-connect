@@ -111,8 +111,11 @@ router.beforeEach((to, from, next) => {
 #### To logout
 ```
 const vue = this;
-vue.$sso.doLogout();
-//peform your own redirection after logout is done
+// supply a callback to the function to logout function to redirect to
+vue.$sso.doLogout(function() {
+	// vue.$router.push({ name: 'home' });
+	// vue.$router.push({ path: '/' });
+});
 ```
 
 #### To get user's data
