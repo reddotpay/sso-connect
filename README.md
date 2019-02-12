@@ -1,11 +1,11 @@
 # rdp-sso
-[![npm (scoped)](https://img.shields.io/npm/v/@reddotpay/rdp-sso.svg)](https://www.npmjs.com/package/@reddotpay/rdp-sso)
+[![npm (scoped)](https://img.shields.io/npm/v/@leroyleejh/rdp-sso.svg)](https://www.npmjs.com/package/@leroyleejh/rdp-sso)
 
 SSO package for RDP products
 
 ## Install
 ```
-npm install @reddotpay/rdp-sso
+npm install @leroyleejh/rdp-sso
 ```
 
 ## Requirements
@@ -111,8 +111,11 @@ router.beforeEach((to, from, next) => {
 #### To logout
 ```
 const vue = this;
-vue.$sso.doLogout();
-//peform your own redirection after logout is done
+// supply a callback function to doLogout for redirect
+vue.$sso.doLogout(function() {
+	// vue.$router.push({ name: 'home' });
+	// vue.$router.push({ path: '/' });
+});
 ```
 
 #### To get user's data
