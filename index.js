@@ -65,7 +65,7 @@ class rdpSSO {
 		const payload = {
 			rdp_jwt: rdpJWT,
 		};
-		return axios.post(
+		await axios.post(
 			`${this.ssoEndPoint}/logout`,
 			{
 				payload: encryptData(payload),
@@ -79,10 +79,14 @@ class rdpSSO {
 			},
 		)
 		.then(() => {
-			callbackfn();
+			if (typeof callbackfn === 'function') {
+				callbackfn();
+			}
 		})
 		.catch(() => {
-			callbackfn();
+			if (typeof callbackfn === 'function') {
+				callbackfn();
+			}
 		});
 	}
 
