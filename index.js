@@ -65,7 +65,7 @@ class rdpSSO {
 		const payload = {
 			rdp_jwt: rdpJWT,
 		};
-		await axios.post(
+		return axios.post(
 			`${this.ssoEndPoint}/logout`,
 			{
 				payload: encryptData(payload),
