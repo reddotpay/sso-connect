@@ -35,7 +35,7 @@ class rdpSSO {
 			ls.storeLocal(this.defaultFromKey, defaultRoutePath);
 		}
 		this._storeLocalPathBeforeRedirect(vueRouteTo);
-		if (this._performJWTCheck(true, vueRouter)) {
+		if (this._performJWTCheck(1, vueRouter)) {
 			return;
 		}
 	}
@@ -57,32 +57,33 @@ class rdpSSO {
 		}
 	}
 
-	async doLogout() {
+	doLogout(callbackfn) {
 		const rdpJWT = ls.getLocal(this.ssoKey);
 		ls.removeLocal(this.ssoKey);
 		ls.removeLocal(this.permKey);
 		ls.removeLocal(this.ssoShortKey);
-		if (this.getSSOData(rdpJWT)) {
-			const payload = {
-				rdp_jwt: rdpJWT,
-			};
-			return axios.post(
-				`${this.ssoEndPoint}/logout`,
-				{
-					payload: encryptData(payload),
+		const payload = {
+			rdp_jwt: rdpJWT,
+		};
+		return axios.post(
+			`${this.ssoEndPoint}/logout`,
+			{
+				payload: encryptData(payload),
+			},
+			{
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'X-Rdp-Csrf': 'sso',
+					'X-Requested-With': 'XmlHttpRequest',
 				},
-				{
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-						'X-Rdp-Csrf': 'sso',
-						'X-Requested-With': 'XmlHttpRequest',
-					},
-				},
-			)
-				.then(() => true)
-				.catch(() => false);
-		}
-		return true;
+			},
+		)
+		.then(() => {
+			callbackfn();
+		})
+		.catch(() => {
+			callbackfn();
+		});
 	}
 
 	async checkSSO(vueRouter) {
@@ -308,10 +309,11 @@ class rdpSSO {
 		window.location = finalURI;
 	}
 
-	_verifyToken(rdpJWT) {
+	_verifyToken(rdpJWT, loop) {
 		const payload = {
 			rdp_jwt: rdpJWT,
 		};
+		payload.loop = (loop !== undefined && loop) ? 1 : 0;
 		return axios.post(
 			`${this.ssoEndPoint}/verify`,
 			{
@@ -333,18 +335,17 @@ class rdpSSO {
 	}
 
 	async _performJWTCheck(skipTimeout, vueRouter) {
-		skipTimeout = false;
 		if (!skipTimeout) {
 			if (this.ssoIntervalFn) {
 				clearTimeout(this.ssoIntervalFn);
 			}
 		}
 
-		if (this.getSSOData() && await this._verifyToken(this.getSSOToken())) {
-			if (!skipTimeout) {
+		if (this.getSSOData() && await this._verifyToken(this.getSSOToken(), !skipTimeout)) {
+			if (!skipTimeout || !this.ssoIntervalFn) {
 				const obj = this;
 				this.ssoIntervalFn = setTimeout(function(){
-					obj._performJWTCheck(false, vueRouter);
+					obj._performJWTCheck(0, vueRouter);
 				}
 					, 60000);
 			}
