@@ -66,7 +66,7 @@ class rdpSSO {
 			const payload = {
 				rdp_jwt: rdpJWT,
 			};
-			return axios.post(
+			await axios.post(
 				`${this.ssoEndPoint}/logout`,
 				{
 					payload: encryptData(payload),
@@ -308,10 +308,11 @@ class rdpSSO {
 		window.location = finalURI;
 	}
 
-	_verifyToken(rdpJWT) {
+	_verifyToken(rdpJWT, loop) {
 		const payload = {
 			rdp_jwt: rdpJWT,
 		};
+		payload.loop = (loop !== undefined) ? loop : 0;
 		return axios.post(
 			`${this.ssoEndPoint}/verify`,
 			{
@@ -340,7 +341,7 @@ class rdpSSO {
 			}
 		}
 
-		if (this.getSSOData() && await this._verifyToken(this.getSSOToken())) {
+		if (this.getSSOData() && await this._verifyToken(this.getSSOToken(), 1)) {
 			if (!skipTimeout) {
 				const obj = this;
 				this.ssoIntervalFn = setTimeout(function(){
