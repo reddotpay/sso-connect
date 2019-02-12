@@ -35,7 +35,7 @@ class rdpSSO {
 			ls.storeLocal(this.defaultFromKey, defaultRoutePath);
 		}
 		this._storeLocalPathBeforeRedirect(vueRouteTo);
-		if (this._performJWTCheck(true, vueRouter)) {
+		if (this._performJWTCheck(1, vueRouter)) {
 			return;
 		}
 	}
@@ -312,7 +312,7 @@ class rdpSSO {
 		const payload = {
 			rdp_jwt: rdpJWT,
 		};
-		payload.loop = (loop !== undefined) ? loop : 0;
+		payload.loop = (loop !== undefined && loop) ? 1 : 0;
 		return axios.post(
 			`${this.ssoEndPoint}/verify`,
 			{
@@ -334,18 +334,17 @@ class rdpSSO {
 	}
 
 	async _performJWTCheck(skipTimeout, vueRouter) {
-		skipTimeout = false;
 		if (!skipTimeout) {
 			if (this.ssoIntervalFn) {
 				clearTimeout(this.ssoIntervalFn);
 			}
 		}
 
-		if (this.getSSOData() && await this._verifyToken(this.getSSOToken(), 1)) {
-			if (!skipTimeout) {
+		if (this.getSSOData() && await this._verifyToken(this.getSSOToken(), !skipTimeout)) {
+			if (!skipTimeout || !this.ssoIntervalFn) {
 				const obj = this;
 				this.ssoIntervalFn = setTimeout(function(){
-					obj._performJWTCheck(false, vueRouter);
+					obj._performJWTCheck(0, vueRouter);
 				}
 					, 60000);
 			}
