@@ -82,11 +82,13 @@ class rdpSSO {
 			if (typeof callbackfn === 'function') {
 				callbackfn();
 			}
+			return true;
 		})
 		.catch(() => {
 			if (typeof callbackfn === 'function') {
 				callbackfn();
 			}
+			return false;
 		});
 	}
 
