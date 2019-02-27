@@ -91,7 +91,7 @@ routes: [
 #### main.js
 ```
 import Vue from 'vue';
-import SSO from '@leroyleejh/rdp-sso';
+import SSO from '@reddotpay/rdp-sso';
 
 Object.defineProperty(Vue.prototype, '$sso', { value: SSO });
 
