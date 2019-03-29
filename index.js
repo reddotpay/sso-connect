@@ -240,6 +240,14 @@ class rdpSSO {
 		return data.rdp_companyName;
 	}
 
+	getMerchantID() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (!data) {
+			return false;
+		}
+		return data.rdp_merchantID;
+	}
+
 	getCompanyGroupID() {
 		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
 		if (!data) {
