@@ -5,7 +5,7 @@
   "repository": "reddotpay/rdp-sso",
   "dependencies": {
     "axios": "^0.18.0",
-    "jsonwebtoken": "^8.4.0"
+    "jsonwebtoken": "^8.5.1"
   },
   "main": "index.js",
   "keywords": [
