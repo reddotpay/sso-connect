@@ -23,6 +23,9 @@ class rdpSSO {
 	}
 
 	async init(vueRouteTo, vueRouteFrom, vueRouter, defaultRoutePath) {
+		if (typeof defaultRoutePath !== 'undefined') {
+			ls.storeLocal(this.defaultFromKey, defaultRoutePath);
+		}
 		if (vueRouteTo.name === 'auth'
 		|| vueRouteTo.name === 'login'
 		|| vueRouteTo.name === 'show'
@@ -30,9 +33,6 @@ class rdpSSO {
 		|| vueRouteTo.name === 'error'
 		|| vueRouteTo.name === 'notfound') {
 			return;
-		}
-		if (typeof defaultRoutePath !== 'undefined') {
-			ls.storeLocal(this.defaultFromKey, defaultRoutePath);
 		}
 		this._storeLocalPathBeforeRedirect(vueRouteTo);
 		if (this._performJWTCheck(1, vueRouter)) {
@@ -171,6 +171,7 @@ class rdpSSO {
 			"rdp_company": "test", // companyID used to log in
 			"rdp_companyName": "test", // company name entered when user signs up
 			"rdp_groupID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // company UUID (used for MAM)
+			"rdp_merchantID": "[merchantID1, merchantID2, ...] | '*' ", "// array of MerchantID | or '*' ('*' represents all MerchantID) that this user has permission for
 			"rdp_uuid": "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // UUID of user (used for permissions etc)
 			"rdp_auth": "auth", // sso variables
 			"iat": xxxxxxxx, // sso variables
@@ -246,6 +247,14 @@ class rdpSSO {
 			return false;
 		}
 		return data.rdp_merchantID;
+	}
+
+	getRootMerchantID() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (!data) {
+			return false;
+		}
+		return data.rdp_rootMerchantID;
 	}
 
 	getCompanyGroupID() {
