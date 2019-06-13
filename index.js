@@ -246,7 +246,15 @@ class rdpSSO {
 		if (!data) {
 			return false;
 		}
-		return data.rdp_merchantID;
+		return data.rdp_merchantID.Staging;
+	}
+
+	getMerchantIDProd() {
+		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		if (!data) {
+			return false;
+		}
+		return data.rdp_merchantID.Production;
 	}
 
 	getRootMerchantID() {
