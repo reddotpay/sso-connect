@@ -1,4 +1,5 @@
-import * as crypto from 'crypto';
+const crypto = require('crypto');
+// import * as crypto from 'crypto';
 
 const k1Length = 32;
 const k2Length = 16;
@@ -20,4 +21,5 @@ function encryptData(object) {
 	};
 }
 
-export default encryptData;
+// export default encryptData;
+module.exports = encryptData;

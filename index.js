@@ -1,9 +1,11 @@
-import jwt from './jwt';
-import ls from './localstorage';
-import encryptData from './encrypt';
-
-
 const axios = require('axios');
+const jwt = require('./jwt');
+const ls = require('./localstorage');
+const encryptData = require('./encrypt');
+// import jwt from './jwt'
+// import ls from './localstorage'
+// import encryptData from './encrypt'
+
 
 // to be used by modules
 class rdpSSO {
@@ -43,17 +45,21 @@ class rdpSSO {
 		this._performJWTCheck(1, vueRouter);
 	}
 
-	async backendCheckSSO(ssoJWT) {
+	async backendCheckSSO(ssoJWT, productName) {
 		if (!this.isBackend) {
 			return;
 		}
-		this.ssoToken = ssoJWT;
-
 		const payload = {
-			rdp_token: this.ssoToken,
+			rdp_jwt: ssoJWT,
 		};
+		let getACL = false;
+		if (productName !== 'undefined' && productName) {
+			payload.product_name = productName;
+			getACL = true;
+		}
 
-		axios.post(`${this.ssoEndPoint}/exchange`,
+		// eslint-disable-next-line consistent-return
+		return axios.post(`${this.ssoEndPoint}/exchange`,
 			{
 				payload: encryptData(payload),
 			},
@@ -63,13 +69,18 @@ class rdpSSO {
 					'X-Rdp-Csrf': 'sso',
 					'X-Requested-With': 'XmlHttpRequest',
 				},
-			}).then((response) => {
-			if (response.status === 200 && response.data) {
-				this.acl = JSON.parse(response.data.rdp_perm);
-				return true;
-			}
-			return false;
-		}).catch(() => false);
+			})
+			.then((response) => {
+				if (response.status === 200 && response.data) {
+					this.ssoToken = ssoJWT;
+					if (getACL && response.data.rdp_perm) {
+						this.acl = JSON.parse(response.data.rdp_perm);
+					}
+					return true;
+				}
+				return false;
+			})
+			.catch(() => false);
 	}
 
 	async doLogin(vueRoute, vueRouter) {
@@ -97,8 +108,7 @@ class rdpSSO {
 		const payload = {
 			rdp_jwt: rdpJWT,
 		};
-		await axios.post(
-			`${this.ssoEndPoint}/logout`,
+		await axios.post(`${this.ssoEndPoint}/logout`,
 			{
 				payload: encryptData(payload),
 			},
@@ -108,8 +118,7 @@ class rdpSSO {
 					'X-Rdp-Csrf': 'sso',
 					'X-Requested-With': 'XmlHttpRequest',
 				},
-			},
-		)
+			})
 			.then(() => {
 				if (typeof callbackfn === 'function') {
 					callbackfn();
@@ -166,8 +175,7 @@ class rdpSSO {
 		const payload = {
 			rdp_mtoken: mToken,
 		};
-		return axios.post(
-			`${this.ssoEndPoint}/exchange`,
+		return axios.post(`${this.ssoEndPoint}/exchange`,
 			{
 				payload: encryptData(payload),
 			},
@@ -177,18 +185,18 @@ class rdpSSO {
 					'X-Rdp-Csrf': 'sso',
 					'X-Requested-With': 'XmlHttpRequest',
 				},
-			},
-		).then((response) => {
-			if (response.status === 200
-			&& response.data.rdp_jwt && this.getSSOData(response.data.rdp_jwt)
-			&& response.data.rdp_perm) {
-				this.storeSSO(response.data.rdp_jwt);
-				this.storePermissions(response.data.rdp_perm);
-				// this.storeShortLiveToken();
-				return true;
-			}
-			return false;
-		}).catch(() => false);
+			})
+			.then((response) => {
+				if (response.status === 200
+					&& response.data.rdp_jwt && this.getSSOData(response.data.rdp_jwt)
+					&& response.data.rdp_perm) {
+					this.storeSSO(response.data.rdp_jwt);
+					this.storePermissions(response.data.rdp_perm);
+					// this.storeShortLiveToken();
+					return true;
+				}
+				return false;
+			}).catch(() => false);
 	}
 
 	storeSSO(value) {
@@ -323,14 +331,14 @@ class rdpSSO {
 		return data.rdp_role;
 	}
 
-	// getSSOToken() {
-	// 	if (!jwt.verifyToken(this._getSSOJWT())) {
-	// 		ls.removeLocal(this.ssoKey);
-	// 		this.ssoToken = null;
-	// 		return false;
-	// 	}
-	// 	return this._getSSOJWT();
-	// }
+	getSSOToken() {
+		if (!jwt.verifyToken(this._getSSOJWT())) {
+			ls.removeLocal(this.ssoKey);
+			this.ssoToken = null;
+			return false;
+		}
+		return this._getSSOJWT();
+	}
 
 	// storeShortLiveToken() {
 	// 	return true;
@@ -395,8 +403,7 @@ class rdpSSO {
 			rdp_jwt: rdpJWT,
 		};
 		payload.loop = (loop !== undefined && loop) ? 1 : 0;
-		return axios.post(
-			`${this.ssoEndPoint}/verify`,
+		return axios.post(`${this.ssoEndPoint}/verify`,
 			{
 				payload: encryptData(payload),
 			},
@@ -406,8 +413,9 @@ class rdpSSO {
 					'X-Rdp-Csrf': 'sso',
 					'X-Requested-With': 'XmlHttpRequest',
 				},
-			},
-		).then(response => response.status === 200).catch(() => false);
+			})
+			.then(response => response.status === 200)
+			.catch(() => false);
 		// this.storeShortLiveToken();
 	}
 
@@ -435,4 +443,5 @@ class rdpSSO {
 const SSO = rdpSSO;
 const rdpsso = new SSO();
 
-export default rdpsso;
+// export default rdpsso
+module.exports = rdpsso;

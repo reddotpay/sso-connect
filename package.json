@@ -1,17 +1,17 @@
 {
-  "name": "@reddotpay/rdp-sso",
-  "version": "0.2.20",
-  "description": "SSO module for frontend",
-  "repository": "reddotpay/rdp-sso",
-  "dependencies": {
-    "axios": "^0.19.0",
-    "jsonwebtoken": "^8.5.1"
-  },
-  "main": "index.js",
-  "keywords": [
-    "rdp-sso",
-    "npm",
-    "package",
-    "reddotpay"
-  ]
+	"name": "@reddotpay/rdp-sso",
+	"version": "0.3.0",
+	"description": "SSO module for frontend",
+	"repository": "reddotpay/rdp-sso",
+	"dependencies": {
+		"axios": "^0.19.0",
+		"jsonwebtoken": "^8.5.1"
+	},
+	"main": "index.js",
+	"keywords": [
+		"rdp-sso",
+		"npm",
+		"package",
+		"reddotpay"
+	]
 }

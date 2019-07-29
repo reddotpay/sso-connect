@@ -1,4 +1,5 @@
-import * as jsonwebtoken from 'jsonwebtoken';
+const jsonwebtoken = require('jsonwebtoken');
+// import * as jsonwebtoken from 'jsonwebtoken';
 
 class jwtClass {
 	constructor() {
@@ -49,6 +50,6 @@ class jwtClass {
 // module.exports = new jwtClass();
 const JWT = jwtClass;
 const jwt = new JWT();
-// module.exports = jwt;
 
-export default jwt;
+// export default jwt;
+module.exports = jwt;

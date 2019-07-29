@@ -173,6 +173,27 @@ export default {
 }
 ```
 
+#### To verify token / extend user session on backend
+This should be run once per backend execution.
+ssojwt should be sent from frontend products to backend
+
+productName field is used to retrieve ACL permissions
+```
+const sso = require('@reddotpay/rdp-sso');
+await sso.backendCheckSSO(ssojwt, 'productName'); // returns true or false
+```
+
+#### To extend user session
+Frontend
+```
+this.$sso.checkSSO();
+```
+Backend
+```
+const sso = require('@reddotpay/rdp-sso');
+await sso.backendCheckSSO(ssojwt); // returns true or false
+```
+
 #### To read permissions
 ```
 export default {
