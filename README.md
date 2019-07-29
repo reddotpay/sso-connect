@@ -1,11 +1,11 @@
-# rdp-sso
-[![npm (scoped)](https://img.shields.io/npm/v/@reddotpay/rdp-sso.svg)](https://www.npmjs.com/package/@reddotpay/rdp-sso)
+# sso-connect
+[![npm (scoped)](https://img.shields.io/npm/v/@reddotpay/sso-connect.svg)](https://www.npmjs.com/package/@reddotpay/sso-connect)
 
 SSO package for RDP products
 
 ## Install
 ```
-npm install @reddotpay/rdp-sso
+npm install @reddotpay/sso-connect
 ```
 
 ## Requirements
@@ -91,7 +91,7 @@ routes: [
 #### main.js
 ```
 import Vue from 'vue';
-import SSO from '@reddotpay/rdp-sso';
+import SSO from '@reddotpay/sso-connect';
 
 Object.defineProperty(Vue.prototype, '$sso', { value: SSO });
 
@@ -179,7 +179,7 @@ ssojwt should be sent from frontend products to backend
 
 productName field is used to retrieve ACL permissions
 ```
-const sso = require('@reddotpay/rdp-sso');
+const sso = require('@reddotpay/sso-connect');
 await sso.backendCheckSSO(ssojwt, 'productName'); // returns true or false
 ```
 
@@ -190,7 +190,7 @@ this.$sso.checkSSO();
 ```
 Backend
 ```
-const sso = require('@reddotpay/rdp-sso');
+const sso = require('@reddotpay/sso-connect');
 await sso.backendCheckSSO(ssojwt); // returns true or false
 ```
 

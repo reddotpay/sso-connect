@@ -1,8 +1,8 @@
 {
-	"name": "@reddotpay/rdp-sso",
+	"name": "@reddotpay/sso-connect",
 	"version": "0.3.0",
 	"description": "SSO module for frontend",
-	"repository": "reddotpay/rdp-sso",
+	"repository": "reddotpay/sso-connect",
 	"dependencies": {
 		"axios": "^0.19.0",
 		"jsonwebtoken": "^8.5.1"
