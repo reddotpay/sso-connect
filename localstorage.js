@@ -1,8 +1,7 @@
 class localStorageClass {
-
 	constructor() {
 		this.storageAvailable = true;
-		if (typeof (Storage) ==='undefined') {
+		if (typeof (Storage) === 'undefined') {
 			this.storageAvailable = false;
 		}
 	}

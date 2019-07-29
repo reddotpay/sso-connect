@@ -1,0 +1,60 @@
+{
+	"parserOptions": {
+		"ecmaVersion": 9,
+		"sourceType": "module",
+		"ecmaFeatures": {}
+	},
+	"plugins" : [
+		"import"
+	],
+	"extends": [
+		"airbnb-base"
+	],
+	"rules" : {
+		"brace-style": ["error", "1tbs", {"allowSingleLine" : false}],
+		"comma-spacing": ["error", {"before": false, "after": true}],
+		"comma-style": ["error", "last"],
+		"indent": [
+			"error", "tab",
+			{
+				"SwitchCase" : 1,
+				"MemberExpression": 1,
+				"ObjectExpression": "first"
+			},
+		],
+		"max-len": [
+			"error", {
+				"code": 120,
+				"comments": 120,
+				"ignoreComments": true,
+				"ignorePattern": "^\\s*var\\s.+=\\s*require\\s*\\(",
+				"ignoreTrailingComments": false,
+				"ignoreUrls": true
+			}
+		],
+		"no-console": 0,
+		"no-magic-numbers" : [
+			"error", {
+				"ignoreArrayIndexes": true,
+				"ignore": [
+					0,
+					1,
+					200,
+					400,
+					404,
+					768
+				]
+			}
+		],
+		"no-tabs": 0,
+		"no-underscore-dangle" :["error", {"allowAfterThis": true}],
+		"spaced-comment": ["error", "always"]
+	},
+	"env": {
+		"browser": true,
+		"es6": true,
+		"jquery": true,
+		"mocha": true,
+		"node": true
+	}
+}

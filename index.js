@@ -17,9 +17,14 @@ class rdpSSO {
 		this.defaultFromKey = 'rdp-sso-default-from';
 		this.ssoEndPoint = process.env.VUE_APP_RDP_SSO_ENDPOINT;
 		this.ssoPage = process.env.VUE_APP_RDP_SSO_PAGE;
-		this.ssoShortTimeout = (process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT) ? process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT : '15m';
+		this.ssoShortTimeout = (process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT)
+			? process.env.VUE_APP_RDP_SSO_SHORTKEY_TIMEOUT
+			: '15m';
 
-		this.ssoIntervalFn;
+		this.ssoIntervalFn = null;
+		this.ssoToken = null;
+		this.acl = null;
+		this.isBackend = !ls.storageAvailable;
 	}
 
 	async init(vueRouteTo, vueRouteFrom, vueRouter, defaultRoutePath) {
@@ -35,9 +40,36 @@ class rdpSSO {
 			return;
 		}
 		this._storeLocalPathBeforeRedirect(vueRouteTo);
-		if (this._performJWTCheck(1, vueRouter)) {
+		this._performJWTCheck(1, vueRouter);
+	}
+
+	async backendCheckSSO(ssoJWT) {
+		if (!this.isBackend) {
 			return;
 		}
+		this.ssoToken = ssoJWT;
+
+		const payload = {
+			rdp_token: this.ssoToken,
+		};
+
+		axios.post(`${this.ssoEndPoint}/exchange`,
+			{
+				payload: encryptData(payload),
+			},
+			{
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'X-Rdp-Csrf': 'sso',
+					'X-Requested-With': 'XmlHttpRequest',
+				},
+			}).then((response) => {
+			if (response.status === 200 && response.data) {
+				this.acl = JSON.parse(response.data.rdp_perm);
+				return true;
+			}
+			return false;
+		}).catch(() => false);
 	}
 
 	async doLogin(vueRoute, vueRouter) {
@@ -57,15 +89,15 @@ class rdpSSO {
 		}
 	}
 
-	doLogout(callbackfn) {
-		const rdpJWT = ls.getLocal(this.ssoKey);
+	async doLogout(callbackfn) {
+		const rdpJWT = this._getSSOJWT();
 		ls.removeLocal(this.ssoKey);
 		ls.removeLocal(this.permKey);
 		ls.removeLocal(this.ssoShortKey);
 		const payload = {
 			rdp_jwt: rdpJWT,
 		};
-		return axios.post(
+		await axios.post(
 			`${this.ssoEndPoint}/logout`,
 			{
 				payload: encryptData(payload),
@@ -78,22 +110,22 @@ class rdpSSO {
 				},
 			},
 		)
-		.then(() => {
-			if (typeof callbackfn === 'function') {
-				callbackfn();
-			}
-			return true;
-		})
-		.catch(() => {
-			if (typeof callbackfn === 'function') {
-				callbackfn();
-			}
-			return false;
-		});
+			.then(() => {
+				if (typeof callbackfn === 'function') {
+					callbackfn();
+				}
+				return true;
+			})
+			.catch(() => {
+				if (typeof callbackfn === 'function') {
+					callbackfn();
+				}
+				return false;
+			});
 	}
 
 	async checkSSO(vueRouter) {
-		const rdpJWT = ls.getLocal(this.ssoKey);
+		const rdpJWT = this._getSSOJWT();
 		const mToken = ls.getLocal(this.mTokenKey);
 		// if token exists, verify with the server
 		if (rdpJWT && this.getSSOData(rdpJWT)) {
@@ -122,14 +154,14 @@ class rdpSSO {
 	exchangeJWT() {
 		const mToken = ls.getLocal(this.mTokenKey);
 		ls.removeLocal(this.mTokenKey);
-		if(!mToken || !this.getSSOData(mToken)) {
+		if (!mToken || !this.getSSOData(mToken)) {
 			// Token expired, redirect back to login page
 			return false;
 		}
 		// verify mToken
 		const payload = {
 			rdp_mtoken: mToken,
-		}
+		};
 		return axios.post(
 			`${this.ssoEndPoint}/exchange`,
 			{
@@ -148,7 +180,7 @@ class rdpSSO {
 			&& response.data.rdp_perm) {
 				this.storeSSO(response.data.rdp_jwt);
 				this.storePermissions(response.data.rdp_perm);
-				//this.storeShortLiveToken();
+				// this.storeShortLiveToken();
 				return true;
 			}
 			return false;
@@ -182,19 +214,17 @@ class rdpSSO {
 		if (typeof value !== 'undefined' && value) {
 			return jwt.verifyToken(value);
 		}
-		if (ls.getLocal(this.ssoKey)) {
-			const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
-			if (!data) {
-				ls.removeLocal(this.ssoKey);
-				return false;
-			}
-			return data;
+		const data = jwt.verifyToken(this._getSSOJWT());
+		if (!data) {
+			ls.removeLocal(this.ssoKey);
+			this.ssoToken = null;
+			return false;
 		}
-		return false;
+		return data;
 	}
 
 	getUserID() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -202,7 +232,7 @@ class rdpSSO {
 	}
 
 	getUserName() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -210,7 +240,7 @@ class rdpSSO {
 	}
 
 	getUserFirstName() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -218,7 +248,7 @@ class rdpSSO {
 	}
 
 	getUserLastName() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -226,7 +256,7 @@ class rdpSSO {
 	}
 
 	getCompanyID() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -234,7 +264,7 @@ class rdpSSO {
 	}
 
 	getCompanyName() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -242,7 +272,7 @@ class rdpSSO {
 	}
 
 	getMerchantID() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -250,7 +280,7 @@ class rdpSSO {
 	}
 
 	getMerchantIDStaging() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -258,7 +288,7 @@ class rdpSSO {
 	}
 
 	getMerchantIDProd() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -266,7 +296,7 @@ class rdpSSO {
 	}
 
 	getRootMerchantID() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -274,7 +304,7 @@ class rdpSSO {
 	}
 
 	getCompanyGroupID() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
@@ -282,20 +312,21 @@ class rdpSSO {
 	}
 
 	getUserRole() {
-		const data = jwt.verifyToken(ls.getLocal(this.ssoKey));
+		const data = this.getSSOData();
 		if (!data) {
 			return false;
 		}
 		return data.rdp_role;
 	}
 
-	getSSOToken() {
-		if (!jwt.verifyToken(ls.getLocal(this.ssoKey))) {
-			ls.removeLocal(this.ssoKey);
-			return false;
-		}
-		return ls.getLocal(this.ssoKey);
-	}
+	// getSSOToken() {
+	// 	if (!jwt.verifyToken(this._getSSOJWT())) {
+	// 		ls.removeLocal(this.ssoKey);
+	// 		this.ssoToken = null;
+	// 		return false;
+	// 	}
+	// 	return this._getSSOJWT();
+	// }
 
 	// storeShortLiveToken() {
 	// 	return true;
@@ -318,6 +349,13 @@ class rdpSSO {
 
 	getPermissions() {
 		return ls.getLocal(this.permKey);
+	}
+
+	_getSSOJWT() {
+		if (this.ssoToken) {
+			return this.ssoToken;
+		}
+		return ls.getLocal(this.ssoKey);
 	}
 
 	_storeLocalPathBeforeRedirect(vueRoute) {
@@ -348,7 +386,7 @@ class rdpSSO {
 		window.location = finalURI;
 	}
 
-	_verifyToken(rdpJWT, loop) {
+	async _verifyToken(rdpJWT, loop) {
 		const payload = {
 			rdp_jwt: rdpJWT,
 		};
@@ -365,12 +403,8 @@ class rdpSSO {
 					'X-Requested-With': 'XmlHttpRequest',
 				},
 			},
-		).then((response) => {
-			//this.storeShortLiveToken();
-			return response.status === 200;
-		}).catch(() => {
-			return false;
-		} );
+		).then(response => response.status === 200).catch(() => false);
+		// this.storeShortLiveToken();
 	}
 
 	async _performJWTCheck(skipTimeout, vueRouter) {
@@ -380,16 +414,15 @@ class rdpSSO {
 			}
 		}
 
-		if (this.getSSOData() && await this._verifyToken(this.getSSOToken(), !skipTimeout)) {
+		if (this.getSSOData() && await this._verifyToken(this._getSSOJWT(), !skipTimeout)) {
 			if (!skipTimeout || !this.ssoIntervalFn) {
-				const obj = this;
-				this.ssoIntervalFn = setTimeout(function(){
-					obj._performJWTCheck(0, vueRouter);
+				this.ssoIntervalFn = setTimeout(() => {
+					this._performJWTCheck(0, vueRouter);
 				}
-					, 60000);
+				// eslint-disable-next-line no-magic-numbers
+				, 60000);
 			}
-		}
-		else {
+		} else {
 			vueRouter.push({ path: '/auth' });
 		}
 	}
