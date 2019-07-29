@@ -131,7 +131,9 @@ class rdpSSO {
 		if (rdpJWT && this.getSSOData(rdpJWT)) {
 			// Verify SSO key with sso server
 			if (await this._verifyToken(rdpJWT)) {
-				this._redirectToFrom(vueRouter);
+				if (typeof vueRouter !== 'undefined' && vueRouter) {
+					this._redirectToFrom(vueRouter);
+				}
 				return true;
 			}
 			// if token not valid / expired, remove JWT from local storage and proceed to login
@@ -139,7 +141,9 @@ class rdpSSO {
 			// if mtoken exists, and is valid, exchange for jwt
 		} else if (mToken && this.getSSOData(mToken)) {
 			if (await this.exchangeJWT()) {
-				this._redirectToFrom(vueRouter);
+				if (typeof vueRouter !== 'undefined' && vueRouter) {
+					this._redirectToFrom(vueRouter);
+				}
 				return true;
 			}
 			ls.removeLocal(this.mTokenKey);
