@@ -1,6 +1,6 @@
 {
 	"name": "@reddotpay/sso-connect",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"description": "SSO module for frontend",
 	"repository": "reddotpay/sso-connect",
 	"dependencies": {

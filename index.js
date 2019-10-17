@@ -45,9 +45,21 @@ class rdpSSO {
 		this._performJWTCheck(1, vueRouter);
 	}
 
+	backendStoreSSO(ssoJWT) {
+		if (!this.isBackend) {
+			return false;
+		}
+
+		if (!this.getSSOData(ssoJWT)) {
+			return false;
+		}
+		this.ssoToken = ssoJWT;
+		return true;
+	}
+
 	async backendCheckSSO(ssoJWT, productName) {
 		if (!this.isBackend) {
-			return;
+			return false;
 		}
 		const payload = {
 			rdp_jwt: ssoJWT,
