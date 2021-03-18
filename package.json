@@ -1,10 +1,10 @@
 {
 	"name": "@reddotpay/sso-connect",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"description": "SSO module for frontend",
 	"repository": "reddotpay/sso-connect",
 	"dependencies": {
-		"axios": "^0.19.0",
+		"axios": "^0.21.1",
 		"jsonwebtoken": "^8.5.1"
 	},
 	"author": "Leroy Lee",
