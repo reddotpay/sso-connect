@@ -5,7 +5,7 @@
 	"repository": "reddotpay/sso-connect",
 	"dependencies": {
 		"axios": "^0.21.1",
-		"jsonwebtoken": "^8.5.1"
+		"jsonwebtoken": "^9.0.0"
 	},
 	"author": "Leroy Lee",
 	"license": "GPL-3.0",
